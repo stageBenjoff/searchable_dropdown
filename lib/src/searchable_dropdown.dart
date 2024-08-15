@@ -61,8 +61,7 @@ class SearchableDropdown<T> extends StatefulWidget {
     required Future<List<SearchableDropdownMenuItem<T>>?> Function(
       int,
       String?,
-    )?
-        paginatedRequest,
+    )? paginatedRequest,
     int? requestItemCount,
     Key? key,
     SearchableDropdownController<T>? controller,
@@ -86,6 +85,8 @@ class SearchableDropdown<T> extends StatefulWidget {
     bool hasTrailingClearIcon = true,
     SearchableDropdownMenuItem<T>? initialValue,
     double? dialogOffset,
+    TextStyle? textStyle,
+    Color? dropdownCardColor,
   }) : this._(
           key: key,
           controller: controller,
@@ -111,6 +112,8 @@ class SearchableDropdown<T> extends StatefulWidget {
           hasTrailingClearIcon: hasTrailingClearIcon,
           initialFutureValue: initialValue,
           dialogOffset: dialogOffset,
+          textstyle: textStyle,
+          dropdownCardColor: dropdownCardColor ?? Colors.white,
         );
 
   const SearchableDropdown.future({
@@ -192,6 +195,8 @@ class SearchableDropdown<T> extends StatefulWidget {
     this.isDialogExpanded = true,
     this.hasTrailingClearIcon = true,
     this.dialogOffset,
+    this.textstyle,
+    this.dropdownCardColor = Colors.white,
   });
 
   //Is dropdown enabled
@@ -272,6 +277,12 @@ class SearchableDropdown<T> extends StatefulWidget {
   /// Background decoration of dropdown, i.e. with this you can wrap dropdown with Card.
   final Widget Function(Widget child)? backgroundDecoration;
 
+  /// Selected item text style.
+  final TextStyle? textstyle;
+
+  /// Dropdown card color.
+  final Color? dropdownCardColor;
+
   @override
   State<SearchableDropdown<T>> createState() => _SearchableDropdownState<T>();
 }
@@ -333,6 +344,7 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
       isDialogExpanded: widget.isDialogExpanded,
       hasTrailingClearIcon: widget.hasTrailingClearIcon,
       dialogOffset: widget.dialogOffset ?? 35,
+      cardColor: widget.dropdownCardColor,
     );
 
     return SizedBox(
@@ -366,6 +378,7 @@ class _DropDown<T> extends StatelessWidget {
     this.searchHintText,
     this.changeCompletionDelay,
     this.hasTrailingClearIcon = true,
+    this.cardColor,
   });
 
   final bool isEnabled;
@@ -391,6 +404,7 @@ class _DropDown<T> extends StatelessWidget {
   final Widget? leadingIcon;
   final Widget? hintText;
   final Widget? noRecordText;
+  final Color? cardColor;
 
   @override
   Widget build(BuildContext context) {
@@ -398,7 +412,8 @@ class _DropDown<T> extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: () {
         if (isEnabled) {
-          showDropdownDialog(context, controller, dialogOffset: dialogOffset);
+          showDropdownDialog(context, controller,
+              dialogOffset: dialogOffset, cardColor: cardColor);
         } else {
           disabledOnTap?.call();
         }
@@ -459,6 +474,7 @@ class _DropDown<T> extends StatelessWidget {
     SearchableDropdownController<T> controller, {
     /// Dialog offset from dropdown.
     required double dialogOffset,
+    Color? cardColor,
   }) {
     var isReversed = false;
     final deviceHeight = context.deviceHeight;
@@ -528,6 +544,7 @@ class _DropDown<T> extends StatelessWidget {
                   paginatedRequest: paginatedRequest,
                   searchHintText: searchHintText,
                   changeCompletionDelay: changeCompletionDelay,
+                  cardColor: cardColor,
                 ),
               ),
             ],
@@ -575,6 +592,7 @@ class _DropDownCard<T> extends StatelessWidget {
     this.onChanged,
     this.noRecordText,
     this.changeCompletionDelay,
+    this.cardColor,
   });
 
   final bool isReversed;
@@ -587,6 +605,7 @@ class _DropDownCard<T> extends StatelessWidget {
   final String? searchHintText;
   final void Function(T? value)? onChanged;
   final Widget? noRecordText;
+  final Color? cardColor;
 
   @override
   Widget build(BuildContext context) {
@@ -596,7 +615,8 @@ class _DropDownCard<T> extends StatelessWidget {
       children: [
         Flexible(
           child: Card(
-            margin: EdgeInsets.zero,
+            color: cardColor,
+            margin: const EdgeInsets.symmetric(horizontal: 20),
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(8)),
             ),
@@ -804,10 +824,13 @@ class _DropDownListViewState<T> extends State<_DropDownListView<T>> {
     if (maxScroll - currentScroll <= sensitivity) {
       if (searchText.isNotEmpty) {
         dropdownController.getItemsWithPaginatedRequest(
-            page: dropdownController.page, key: searchText,);
+          page: dropdownController.page,
+          key: searchText,
+        );
       } else {
         dropdownController.getItemsWithPaginatedRequest(
-            page: dropdownController.page,);
+          page: dropdownController.page,
+        );
       }
     }
   }
